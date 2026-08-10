@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #152a52;
+  --color-ink-soft: #4a5a7a;
+  --color-paper: #fbf9f1;
+  --color-green: #3fa55e;
+  --color-green-dark: #2e8b4f;
+  --color-green-light: #a9d96b;
+  --color-mint: #e4f3e5;
+
+  --font-display: "Fredoka", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "Space Mono", monospace;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
