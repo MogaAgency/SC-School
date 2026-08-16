@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Mail, Phone, MapPin, Clock, Send, MessageCircle, Check } from 'lucide-react'
+import { Mail, Phone, MapPin, Clock, Send, MessageCircle, Check, AlertCircle } from 'lucide-react'
 import PageHero from '../components/PageHero'
 import useReveal from '../hooks/useReveal'
 import { programmingCourseNames } from '../data/programmingCourses'
@@ -56,17 +56,70 @@ const fieldByTrack = {
   },
 }
 
+const ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY
+
 export default function Contact() {
   useReveal()
-  const [sent, setSent] = useState(false)
+  // 'idle' | 'sending' | 'sent' | 'error'
+  const [status, setStatus] = useState('idle')
   // starts empty so picking any track visibly swaps the field below it
   const [track, setTrack] = useState('')
 
   const trackField = fieldByTrack[track]
+  const sending = status === 'sending'
 
-  const handleSubmit = (e) => {
+  const resetForm = () => {
+    setTrack('')
+    setStatus('idle')
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSent(true)
+    if (sending) return
+
+    const data = Object.fromEntries(new FormData(e.currentTarget))
+
+    // Honeypot: bots fill hidden fields, humans never see this one.
+    if (data.botcheck) return
+
+    if (!ACCESS_KEY) {
+      console.error('VITE_WEB3FORMS_ACCESS_KEY is not set — the form cannot send.')
+      setStatus('error')
+      return
+    }
+
+    setStatus('sending')
+
+    // Arabic keys so the notification email reads properly.
+    const answer = trackField
+      ? { [trackField.label]: data[trackField.id] }
+      : { 'سن الطالب': data.age || 'مش محدد' }
+
+    try {
+      const res = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: ACCESS_KEY,
+          subject: `طلب جديد من الموقع — ${data.track}`,
+          from_name: 'SC School Website',
+          name: data.name,
+          email: data.email,
+          'رقم الموبايل': data.phone,
+          'المسار المهتم بيه': data.track,
+          ...answer,
+          'الرسالة': data.message || '—',
+        }),
+      })
+
+      const result = await res.json()
+      if (!res.ok || !result.success) throw new Error(result.message || 'submission failed')
+
+      setStatus('sent')
+    } catch (err) {
+      console.error('Web3Forms submission failed:', err)
+      setStatus('error')
+    }
   }
 
   return (
@@ -91,7 +144,7 @@ export default function Contact() {
               <span className="scs-kicker block mb-3">// ابعتلنا رسالة</span>
               <h2 className="scs-h2 text-xl md:text-2xl mb-6">املأ البيانات وهنرجعلك</h2>
 
-              {sent ? (
+              {status === 'sent' ? (
                 <div className="flex flex-col items-center text-center py-10">
                   <div className="scs-icon-wrap scs-tint-green mb-5">
                     <Check size={22} />
@@ -100,14 +153,7 @@ export default function Contact() {
                   <p className="scs-card-text max-w-sm">
                     شكرًا لتواصلك مع SC School، هنرد عليك في أقرب وقت خلال ٢٤ ساعة.
                   </p>
-                  <button
-                    type="button"
-                    className="scs-btn-secondary mt-7"
-                    onClick={() => {
-                      setTrack('')
-                      setSent(false)
-                    }}
-                  >
+                  <button type="button" className="scs-btn-secondary mt-7" onClick={resetForm}>
                     ابعت رسالة تانية
                   </button>
                 </div>
@@ -231,11 +277,39 @@ export default function Contact() {
                     </span>
                   </div>
 
+                  {/* Honeypot — hidden from people, tempting to bots. */}
+                  <input
+                    type="checkbox"
+                    name="botcheck"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    className="hidden"
+                    aria-hidden="true"
+                  />
+
                   <div className="sm:col-span-2">
-                    <button type="submit" className="scs-btn-primary w-full px-8 py-3">
-                      إرسال الرسالة
+                    <button
+                      type="submit"
+                      className="scs-btn-primary w-full px-8 py-3"
+                      disabled={sending}
+                      style={sending ? { opacity: 0.7, cursor: 'wait' } : undefined}
+                    >
+                      {sending ? 'جاري الإرسال...' : 'إرسال الرسالة'}
                       <Send size={16} />
                     </button>
+
+                    {status === 'error' && (
+                      <p className="scs-form-error" role="alert">
+                        <AlertCircle size={15} />
+                        <span>
+                          حصلت مشكلة والرسالة مااتبعتتش. جرّب تاني، أو كلّمنا على واتساب{' '}
+                          <a href="https://wa.me/201020070616" target="_blank" rel="noreferrer">
+                            من هنا
+                          </a>
+                          .
+                        </span>
+                      </p>
+                    )}
                   </div>
                 </form>
               )}

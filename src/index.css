@@ -815,6 +815,29 @@ section[id] {
   background: var(--scs-panel);
   color: var(--scs-text);
 }
+.scs-form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 95, 86, 0.35);
+  background: rgba(255, 95, 86, 0.1);
+  font-family: var(--scs-font-body);
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: #ffb4ae;
+}
+.scs-form-error svg {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+.scs-form-error a {
+  color: var(--scs-green);
+  text-decoration: underline;
+}
+
 .scs-field-hint {
   font-family: var(--scs-font-mono);
   font-size: 0.68rem;
