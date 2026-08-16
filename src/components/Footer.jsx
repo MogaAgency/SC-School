@@ -47,9 +47,9 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a href="tel:+201000000000" className="scs-footer-link inline-flex items-center gap-2">
+              <a href="tel:+201020070616" className="scs-footer-link inline-flex items-center gap-2">
                 <Phone size={14} />
-                <span dir="ltr">+20 100 000 0000</span>
+                <span dir="ltr">+20 102 007 0616</span>
               </a>
             </li>
           </ul>
