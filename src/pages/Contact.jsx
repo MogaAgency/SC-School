@@ -56,7 +56,13 @@ const fieldByTrack = {
   },
 }
 
-const ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY
+// Tolerate the quotes/whitespace that survive a copy-paste into a hosting
+// dashboard — Web3Forms rejects the whole request over a stray newline.
+const ACCESS_KEY = (import.meta.env.VITE_WEB3FORMS_ACCESS_KEY ?? '')
+  .trim()
+  .replace(/^['"]|['"]$/g, '')
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export default function Contact() {
   useReveal()
@@ -84,6 +90,16 @@ export default function Contact() {
 
     if (!ACCESS_KEY) {
       console.error('VITE_WEB3FORMS_ACCESS_KEY is not set — the form cannot send.')
+      setStatus('error')
+      return
+    }
+
+    if (!UUID_RE.test(ACCESS_KEY)) {
+      console.error(
+        `VITE_WEB3FORMS_ACCESS_KEY is not a valid UUID (got ${ACCESS_KEY.length} chars: ` +
+          `"${ACCESS_KEY}"). Check the value saved on the host for stray quotes, spaces ` +
+          'or a copied "KEY=" prefix.',
+      )
       setStatus('error')
       return
     }
