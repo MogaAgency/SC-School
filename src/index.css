@@ -815,6 +815,51 @@ section[id] {
   background: var(--scs-panel);
   color: var(--scs-text);
 }
+.scs-optional {
+  font-family: var(--scs-font-body);
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--scs-text-soft);
+}
+
+.scs-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-family: var(--scs-font-body);
+  font-size: 0.82rem;
+  line-height: 1.8;
+  color: var(--scs-text-soft);
+  cursor: pointer;
+}
+.scs-consent input[type="checkbox"] {
+  appearance: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  margin-top: 0.28rem;
+  border: 1.5px solid var(--scs-border);
+  border-radius: 6px;
+  background-color: rgba(7, 16, 33, 0.6);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+.scs-consent input[type="checkbox"]:checked {
+  background-color: var(--scs-green);
+  border-color: var(--scs-green);
+  /* checkmark */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2304140a' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 0.8rem;
+}
+.scs-consent a {
+  color: var(--scs-green);
+  text-decoration: underline;
+}
+
 .scs-form-error {
   display: flex;
   align-items: flex-start;

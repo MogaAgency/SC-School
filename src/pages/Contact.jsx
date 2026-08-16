@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Mail, Phone, MapPin, Clock, Send, MessageCircle, Check, AlertCircle } from 'lucide-react'
 import PageHero from '../components/PageHero'
 import useReveal from '../hooks/useReveal'
@@ -120,11 +121,15 @@ export default function Contact() {
           subject: `طلب جديد من الموقع — ${data.track}`,
           from_name: 'SC School Website',
           name: data.name,
-          email: data.email,
+          // Web3Forms treats `email` as the Reply-To; an empty one is rejected,
+          // so leave the field out entirely when nobody filled it in.
+          ...(data.email?.trim() ? { email: data.email.trim() } : {}),
           'رقم الموبايل': data.phone,
           'المسار المهتم بيه': data.track,
           ...answer,
           'الرسالة': data.message || '—',
+          // Keep a record of the consent that was given with this submission.
+          'موافقة على سياسة الخصوصية': data.consent ? 'نعم' : 'لا',
         }),
       })
 
@@ -206,13 +211,12 @@ export default function Contact() {
 
                   <div className="sm:col-span-2">
                     <label className="scs-label" htmlFor="email">
-                      البريد الإلكتروني
+                      البريد الإلكتروني <span className="scs-optional">(اختياري)</span>
                     </label>
                     <input
                       id="email"
                       name="email"
                       type="email"
-                      required
                       dir="ltr"
                       className="scs-input text-right"
                       placeholder="you@example.com"
@@ -291,6 +295,18 @@ export default function Contact() {
                     <span className="scs-field-hint">
                       // كل البيانات دي بتستخدم للتواصل معاك بس
                     </span>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="scs-consent" htmlFor="consent">
+                      <input id="consent" name="consent" type="checkbox" required />
+                      <span>
+                        أوافق على إن SC School تستخدم بياناتي دي للتواصل معايا بخصوص الكورسات
+                        بس، وقريت{' '}
+                        <Link to="/privacy">سياسة الخصوصية</Link>. لو الطالب أقل من ١٨ سنة،
+                        الموافقة دي بتكون من ولي الأمر.
+                      </span>
+                    </label>
                   </div>
 
                   {/* Honeypot — hidden from people, tempting to bots. */}
