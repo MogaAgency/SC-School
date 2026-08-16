@@ -69,7 +69,11 @@ section[id] {
 /* ---------- page shell + background effects ---------- */
 .scs-page {
   position: relative;
+  /* `hidden` on one axis computes the other to `auto`, which would make this a
+     scroll container — the tall .scs-bgfx then overflows short pages and adds a
+     second scrollbar. `clip` contains the overflow without scrolling. */
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .scs-bgfx {
