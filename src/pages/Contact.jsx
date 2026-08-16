@@ -59,7 +59,8 @@ const fieldByTrack = {
 export default function Contact() {
   useReveal()
   const [sent, setSent] = useState(false)
-  const [track, setTrack] = useState(tracks[0])
+  // starts empty so picking any track visibly swaps the field below it
+  const [track, setTrack] = useState('')
 
   const trackField = fieldByTrack[track]
 
@@ -103,7 +104,7 @@ export default function Contact() {
                     type="button"
                     className="scs-btn-secondary mt-7"
                     onClick={() => {
-                      setTrack(tracks[0])
+                      setTrack('')
                       setSent(false)
                     }}
                   >
@@ -163,10 +164,14 @@ export default function Contact() {
                     <select
                       id="track"
                       name="track"
+                      required
                       className="scs-select"
                       value={track}
                       onChange={(e) => setTrack(e.target.value)}
                     >
+                      <option value="" disabled>
+                        اختار المسار
+                      </option>
                       {tracks.map((t) => (
                         <option key={t} value={t}>
                           {t}
