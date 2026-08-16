@@ -3,51 +3,7 @@ import { Blocks, Bot, Globe, Code2, Shield, Cpu, Terminal, ArrowLeft } from 'luc
 import CourseCard from '../components/CourseCard'
 import PageHero from '../components/PageHero'
 import useReveal from '../hooks/useReveal'
-
-const courses = [
-  {
-    icon: Blocks,
-    title: 'Scratch',
-    description: 'أول خطوة في البرمجة بطريقة بصرية وسهلة، مناسبة للمبتدئين تمامًا.',
-    badge: 'مبتدئ',
-    detail: '٨ أسابيع · من سن ٩',
-  },
-  {
-    icon: Bot,
-    title: 'Robotics',
-    description: 'بناء وبرمجة روبوتات حقيقية بإيدك، وتشوف نتيجة شغلك بتتحرك قدامك.',
-    badge: 'عملي',
-    detail: '١٠ أسابيع · من سن ١٠',
-  },
-  {
-    icon: Globe,
-    title: 'Web Development',
-    description: 'بناء مواقع من الصفر بـ HTML وCSS وJavaScript خطوة بخطوة.',
-    badge: 'متوسط',
-    detail: '١٢ أسبوع · من سن ١٢',
-  },
-  {
-    icon: Code2,
-    title: 'Programming',
-    description: 'أساسيات البرمجة والتفكير المنطقي بلغة برمجة حقيقية.',
-    badge: 'أساسي',
-    detail: '٨ أسابيع · من سن ١٣',
-  },
-  {
-    icon: Shield,
-    title: 'Cyber Security',
-    description: 'أمن المعلومات وحماية البيانات بمقدمة عملية مناسبة للسن.',
-    badge: 'متقدم',
-    detail: '٦ أسابيع · من سن ١٥',
-  },
-  {
-    icon: Cpu,
-    title: 'AI & Machine Learning',
-    description: 'مدخل عملي لعالم الـ AI، وبناء أول موديل ذكاء اصطناعي بسيط.',
-    badge: 'متقدم',
-    detail: '١٠ أسابيع · من سن ١٧',
-  },
-]
+import { programmingCourses } from '../data/programmingCourses'
 
 const journey = [
   { icon: Blocks, title: 'Scratch', text: 'أول تلامس مع البرمجة', tint: 'blue' },
@@ -80,7 +36,7 @@ export default function ProgrammingCourses() {
 
         <section className="max-w-6xl mx-auto px-4 pb-16">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {courses.map((c, i) => (
+            {programmingCourses.map((c, i) => (
               <CourseCard key={c.title} {...c} tint={tints[i % 3]} index={i} />
             ))}
           </div>

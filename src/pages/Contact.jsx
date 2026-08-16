@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Mail, Phone, MapPin, Clock, Send, MessageCircle, Check } from 'lucide-react'
 import PageHero from '../components/PageHero'
 import useReveal from '../hooks/useReveal'
+import { programmingCourseNames } from '../data/programmingCourses'
 
 const channels = [
   {
@@ -33,16 +34,34 @@ const tracks = [
   'مش متأكد — محتاج ترشيح',
 ]
 
+const PROGRAMMING_TRACK = 'مسار البرمجة'
 const BAC_TRACK = 'مسار البكالوريا'
 
 const bacLevels = ['أولى ثانوي', 'تانية ثانوي']
+
+/**
+ * The field under the track picker: a course list for البرمجة, a school
+ * year for البكالوريا, and the plain age input for anything else.
+ */
+const fieldByTrack = {
+  [PROGRAMMING_TRACK]: {
+    id: 'course',
+    label: 'الكورس المهتم بيه',
+    options: programmingCourseNames,
+  },
+  [BAC_TRACK]: {
+    id: 'level',
+    label: 'السنة الدراسية',
+    options: bacLevels,
+  },
+}
 
 export default function Contact() {
   useReveal()
   const [sent, setSent] = useState(false)
   const [track, setTrack] = useState(tracks[0])
 
-  const isBac = track === BAC_TRACK
+  const trackField = fieldByTrack[track]
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -156,20 +175,20 @@ export default function Contact() {
                     </select>
                   </div>
 
-                  {isBac ? (
-                    <div>
-                      <label className="scs-label" htmlFor="level">
-                        السنة الدراسية
+                  {trackField ? (
+                    <div key={trackField.id}>
+                      <label className="scs-label" htmlFor={trackField.id}>
+                        {trackField.label}
                       </label>
                       <select
-                        id="level"
-                        name="level"
+                        id={trackField.id}
+                        name={trackField.id}
                         className="scs-select"
-                        defaultValue={bacLevels[0]}
+                        defaultValue={trackField.options[0]}
                       >
-                        {bacLevels.map((l) => (
-                          <option key={l} value={l}>
-                            {l}
+                        {trackField.options.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
                           </option>
                         ))}
                       </select>
