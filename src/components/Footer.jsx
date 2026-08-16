@@ -7,6 +7,7 @@ const quickLinks = [
   { to: '/baccalaureate', label: 'البكالوريا' },
   { to: '/about', label: 'عن Smart Core School' },
   { to: '/contact', label: 'تواصل معنا' },
+  { to: '/privacy', label: 'سياسة الخصوصية' },
 ]
 
 export default function Footer() {
