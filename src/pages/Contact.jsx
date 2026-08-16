@@ -33,9 +33,16 @@ const tracks = [
   'مش متأكد — محتاج ترشيح',
 ]
 
+const BAC_TRACK = 'مسار البكالوريا'
+
+const bacLevels = ['أولى ثانوي', 'تانية ثانوي']
+
 export default function Contact() {
   useReveal()
   const [sent, setSent] = useState(false)
+  const [track, setTrack] = useState(tracks[0])
+
+  const isBac = track === BAC_TRACK
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -76,7 +83,10 @@ export default function Contact() {
                   <button
                     type="button"
                     className="scs-btn-secondary mt-7"
-                    onClick={() => setSent(false)}
+                    onClick={() => {
+                      setTrack(tracks[0])
+                      setSent(false)
+                    }}
                   >
                     ابعت رسالة تانية
                   </button>
@@ -131,7 +141,13 @@ export default function Contact() {
                     <label className="scs-label" htmlFor="track">
                       المسار المهتم بيه
                     </label>
-                    <select id="track" name="track" className="scs-select" defaultValue={tracks[0]}>
+                    <select
+                      id="track"
+                      name="track"
+                      className="scs-select"
+                      value={track}
+                      onChange={(e) => setTrack(e.target.value)}
+                    >
                       {tracks.map((t) => (
                         <option key={t} value={t}>
                           {t}
@@ -140,20 +156,40 @@ export default function Contact() {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="scs-label" htmlFor="age">
-                      سن الطالب
-                    </label>
-                    <input
-                      id="age"
-                      name="age"
-                      type="number"
-                      min="9"
-                      max="18"
-                      className="scs-input"
-                      placeholder="من ٩ لـ ١٨"
-                    />
-                  </div>
+                  {isBac ? (
+                    <div>
+                      <label className="scs-label" htmlFor="level">
+                        السنة الدراسية
+                      </label>
+                      <select
+                        id="level"
+                        name="level"
+                        className="scs-select"
+                        defaultValue={bacLevels[0]}
+                      >
+                        {bacLevels.map((l) => (
+                          <option key={l} value={l}>
+                            {l}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="scs-label" htmlFor="age">
+                        سن الطالب
+                      </label>
+                      <input
+                        id="age"
+                        name="age"
+                        type="number"
+                        min="9"
+                        max="18"
+                        className="scs-input"
+                        placeholder="من ٩ لـ ١٨"
+                      />
+                    </div>
+                  )}
 
                   <div className="sm:col-span-2">
                     <label className="scs-label" htmlFor="message">
