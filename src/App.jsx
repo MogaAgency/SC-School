@@ -8,6 +8,11 @@ import Baccalaureate from './pages/Baccalaureate'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import Privacy from './pages/Privacy'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import Platform from './pages/Platform'
+import AuthProvider from './components/AuthProvider'
+import RequireAuth from './components/RequireAuth'
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation()
@@ -36,16 +41,23 @@ function SiteLayout() {
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<SiteLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/programming-courses" element={<ProgrammingCourses />} />
-          <Route path="/baccalaureate" element={<Baccalaureate />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/privacy" element={<Privacy />} />
-        </Route>
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route element={<SiteLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/programming-courses" element={<ProgrammingCourses />} />
+            <Route path="/baccalaureate" element={<Baccalaureate />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route element={<RequireAuth />}>
+              <Route path="/platform" element={<Platform />} />
+            </Route>
+          </Route>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

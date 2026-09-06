@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, LogIn, LogOut, LayoutDashboard } from 'lucide-react'
 import logo from '../assets/logo-light.png'
+import useAuth from '../hooks/useAuth'
 
 const links = [
   { to: '/', label: 'الرئيسية' },
@@ -10,10 +11,41 @@ const links = [
   { to: '/about', label: 'عن المدرسة' },
 ]
 
+/** The account buttons: log in when signed out, my platform + log out when signed in. */
+function AccountActions({ user, signOut, block }) {
+  const width = block ? 'w-full' : ''
+  if (user) {
+    return (
+      <>
+        <Link to="/platform" className={`scs-btn-primary ${width}`}>
+          <LayoutDashboard size={15} />
+          منصتي
+        </Link>
+        <button type="button" className={`scs-btn-secondary ${width}`} onClick={signOut}>
+          <LogOut size={15} />
+          خروج
+        </button>
+      </>
+    )
+  }
+  return (
+    <>
+      <Link to="/login" className={`scs-btn-secondary ${width}`}>
+        <LogIn size={15} />
+        الدخول للمنصة
+      </Link>
+      <Link to="/contact" className={`scs-btn-primary ${width}`}>
+        احجز مكانك
+      </Link>
+    </>
+  )
+}
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { pathname } = useLocation()
+  const { user, signOut } = useAuth()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -47,10 +79,8 @@ export default function Navbar() {
           ))}
         </ul>
 
-        <div className="hidden md:block">
-          <Link to="/contact" className="scs-btn-primary">
-            احجز مكانك
-          </Link>
+        <div className="hidden md:flex items-center gap-3">
+          <AccountActions user={user} signOut={signOut} />
         </div>
 
         <button
@@ -79,9 +109,9 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
-          <Link to="/contact" className="scs-btn-primary w-full">
-            احجز مكانك
-          </Link>
+          <div className="flex flex-col gap-3">
+            <AccountActions user={user} signOut={signOut} block />
+          </div>
         </div>
       )}
     </header>
