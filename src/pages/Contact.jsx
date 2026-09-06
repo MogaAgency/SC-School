@@ -16,8 +16,8 @@ const channels = [
   {
     icon: Phone,
     label: 'اتصل بينا',
-    value: '+20 102 007 0616',
-    href: 'tel:+201020070616',
+    value: '+20 112 512 5501',
+    href: 'tel:+201125125501',
     tint: 'green',
   },
   {
