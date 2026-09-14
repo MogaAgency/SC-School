@@ -32,10 +32,6 @@ create table public.students (
   created_at     timestamptz not null default now()
 );
 
--- One account per student phone. Phones are normalised to +20... in the
--- browser before they get here (src/lib/phone.js).
-create unique index students_phone_key on public.students (phone) where phone <> '';
-
 create table public.enrollments (
   id         uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.students (id) on delete cascade,
@@ -81,9 +77,7 @@ grant select on public.enrollments to authenticated;
 -- ----------------------------------------------------- signup trigger
 
 -- Copies the signup form (sent as user metadata from Signup.jsx) into the
--- students table the moment Supabase creates the auth user. If the phone is
--- already taken the unique index makes this fail, which aborts the signup
--- and surfaces as "Database error saving new user" in the browser.
+-- students table the moment Supabase creates the auth user.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql

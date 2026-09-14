@@ -1,16 +1,13 @@
-import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { UserPlus, Mail, AlertCircle } from 'lucide-react'
 import PageHero from '../components/PageHero'
 import OtpCodeForm from '../components/OtpCodeForm'
 import useAuth from '../hooks/useAuth'
 import useEmailOtp from '../hooks/useEmailOtp'
-import { normalizePhone, isValidPhone } from '../lib/phone'
 
 export default function Signup() {
   const { user } = useAuth()
   const otp = useEmailOtp()
-  const [phoneError, setPhoneError] = useState('')
 
   if (user) return <Navigate to="/platform" replace />
 
@@ -24,29 +21,19 @@ export default function Signup() {
     const email = data.email?.toString().trim() ?? ''
     if (!email) return
 
-    const phone = normalizePhone(data.phone)
-    const guardianPhone = normalizePhone(data.guardian_phone)
-    if (!isValidPhone(phone) || !isValidPhone(guardianPhone)) {
-      setPhoneError('اكتب رقم موبايل صحيح، مثلًا 0100 123 4567 أو +20 100 123 4567.')
-      return
-    }
-    setPhoneError('')
-
     // The metadata lands in auth.users.raw_user_meta_data; the database
     // trigger in supabase/schema.sql copies it into the students table.
     otp.sendCode(email, {
       shouldCreateUser: true,
       data: {
         name: data.name?.toString().trim(),
-        phone,
+        phone: data.phone?.toString().trim(),
         guardian_name: data.guardian_name?.toString().trim(),
-        guardian_phone: guardianPhone,
+        guardian_phone: data.guardian_phone?.toString().trim(),
         consent: Boolean(data.consent),
       },
     })
   }
-
-  const error = phoneError || otp.error
 
   return (
     <div className="scs-page">
@@ -195,10 +182,10 @@ export default function Signup() {
                     <Mail size={16} />
                   </button>
 
-                  {error && (
+                  {otp.error && (
                     <p className="scs-form-error" role="alert">
                       <AlertCircle size={15} />
-                      <span>{error}</span>
+                      <span>{otp.error}</span>
                     </p>
                   )}
                 </div>

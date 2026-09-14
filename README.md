@@ -50,8 +50,7 @@ npm run dev
 
 2. **SQL Editor** → query جديدة → الصق محتوى [`supabase/schema.sql`](supabase/schema.sql) → Run.
    ده بيعمل الجداول (`students`, `enrollments`)، وسياسات الـ RLS اللي بتخلي كل طالب يشوف
-   بياناته بس، والـ trigger اللي بينقل بيانات فورم التسجيل لجدول الطلاب. رقم الطالب unique،
-   فمفيش رقم يتسجّل بحسابين.
+   بياناته بس، والـ trigger اللي بينقل بيانات فورم التسجيل لجدول الطلاب.
 
 3. **Authentication → Email Templates**: في قالب *Magic Link* وقالب *Confirm signup* استبدل
    `{{ .ConfirmationURL }}` بـ `{{ .Token }}` عشان الإيميل يوصل فيه كود من ٦ أرقام بدل لينك.
