@@ -1116,3 +1116,9 @@ section[id] {
   color: var(--scs-text-soft);
   margin-top: 0.15rem;
 }
+
+.scs-form-divider {
+  border-top: 1px dashed var(--scs-border);
+  padding-top: 1.1rem;
+  margin-top: 0.25rem;
+}

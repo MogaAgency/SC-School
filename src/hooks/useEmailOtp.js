@@ -5,6 +5,7 @@ const messages = {
   unregistered: 'الإيميل ده مش مسجّل عندنا. اعمل حساب جديد الأول.',
   badCode: 'الكود غلط أو انتهت صلاحيته. جرّب تاني أو اطلب كود جديد.',
   rateLimit: 'طلبت كود من شوية. استنى دقيقة وجرّب تاني.',
+  phoneTaken: 'رقم الطالب ده مسجّل بحساب قبل كده. ادخل بالإيميل بتاعه أو كلّمنا.',
   notConfigured: 'المنصة مش متظبطة على السيرفر ده. كلّمنا لو المشكلة استمرت.',
   generic: 'حصلت مشكلة. جرّب تاني، أو كلّمنا لو استمرت.',
 }
@@ -15,6 +16,9 @@ function describe(err) {
   const msg = (err?.message ?? '').toLowerCase()
 
   if (code === 'otp_disabled' || msg.includes('signups not allowed')) return messages.unregistered
+  // The signup trigger rejects a duplicate student phone; Supabase reports it
+  // as a generic database error on the auth user insert.
+  if (code === 'unexpected_failure' && msg.includes('database error')) return messages.phoneTaken
   if (code === 'over_email_send_rate_limit' || code === 'over_request_rate_limit') {
     return messages.rateLimit
   }

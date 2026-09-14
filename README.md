@@ -30,10 +30,11 @@ npm run dev
 عند النشر (Netlify / Vercel / GitHub Pages) لازم تضيف نفس المتغير في إعدادات البيئة
 بتاعة المنصة، لأن `.env` مش موجود في الريبو.
 
-## منصة ولي الأمر (Supabase)
+## منصة الطالب (Supabase)
 
 صفحات `/login` و`/signup` و`/platform` بتشتغل على [Supabase](https://supabase.com):
-تسجيل بكود على الإيميل من غير باسورد، وقاعدة بيانات فيها ولي الأمر والطالب والكورسات.
+تسجيل بكود على الإيميل من غير باسورد، وقاعدة بيانات فيها الطالب وكورساته. الحساب بتاع
+الطالب؛ اسم ورقم ولي الأمر بيتسجّلوا معاه عشان المدرسة تتواصل معاه لو فيه تأخير أو ملاحظات.
 
 ### الإعداد لأول مرة
 
@@ -48,8 +49,9 @@ npm run dev
    ماتحطش أبدًا أي مفتاح `sb_secret_` أو `service_role` في الموقع.
 
 2. **SQL Editor** → query جديدة → الصق محتوى [`supabase/schema.sql`](supabase/schema.sql) → Run.
-   ده بيعمل الجداول (`profiles`, `students`, `enrollments`)، وسياسات الـ RLS اللي بتخلي كل
-   ولي أمر يشوف بياناته بس، والـ trigger اللي بينقل بيانات فورم التسجيل للجداول.
+   ده بيعمل الجداول (`students`, `enrollments`)، وسياسات الـ RLS اللي بتخلي كل طالب يشوف
+   بياناته بس، والـ trigger اللي بينقل بيانات فورم التسجيل لجدول الطلاب. رقم الطالب unique،
+   فمفيش رقم يتسجّل بحسابين.
 
 3. **Authentication → Email Templates**: في قالب *Magic Link* وقالب *Confirm signup* استبدل
    `{{ .ConfirmationURL }}` بـ `{{ .Token }}` عشان الإيميل يوصل فيه كود من ٦ أرقام بدل لينك.
@@ -64,9 +66,9 @@ npm run dev
 
 ### إضافة كورس لطالب
 
-الموقع مابيسمحش لولي الأمر يضيف كورسات؛ ده بيتم من لوحة Supabase → **Table Editor →
-enrollments**: اختار `student_id` وبعدين اكتب `course` و`level` و`schedule` و`starts_on`.
-`status` واحدة من `active` / `completed` / `paused`.
+الموقع مابيسمحش للطالب يضيف كورسات؛ ده بيتم من لوحة Supabase → **Table Editor →
+enrollments**: اختار `student_id` (نفس id الطالب في جدول `students`) وبعدين اكتب `course`
+و`level` و`schedule` و`starts_on`. `status` واحدة من `active` / `completed` / `paused`.
 
 ### قبل ما فيه عيلات حقيقية تستخدمها
 

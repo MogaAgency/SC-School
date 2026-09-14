@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import {
   LayoutDashboard,
   User,
-  GraduationCap,
+  Users,
   Phone,
   Mail,
   BookOpen,
+  GraduationCap,
+  CalendarDays,
   LogOut,
   AlertCircle,
   ArrowLeft,
@@ -21,23 +23,20 @@ const statusLabels = {
   paused: { text: 'متوقف مؤقتًا', tone: 'is-gold' },
 }
 
-/** One nested query: the profile, its students, and each student's enrollments. */
-const PROFILE_QUERY = `
+/** One nested query: the student's row plus their enrollments. */
+const STUDENT_QUERY = `
+  name,
+  phone,
+  email,
   guardian_name,
   guardian_phone,
-  email,
-  students (
+  enrollments (
     id,
-    name,
-    phone,
-    enrollments (
-      id,
-      course,
-      level,
-      schedule,
-      status,
-      starts_on
-    )
+    course,
+    level,
+    schedule,
+    status,
+    starts_on
   )
 `
 
@@ -56,7 +55,7 @@ function InfoRow({ icon: Icon, label, value, ltr }) {
 
 export default function Platform() {
   const { user, signOut } = useAuth()
-  const [profile, setProfile] = useState(null)
+  const [student, setStudent] = useState(null)
   const [status, setStatus] = useState('loading') // 'loading' | 'ready' | 'error'
 
   useEffect(() => {
@@ -64,18 +63,18 @@ export default function Platform() {
     let cancelled = false
 
     supabase
-      .from('profiles')
-      .select(PROFILE_QUERY)
+      .from('students')
+      .select(STUDENT_QUERY)
       .eq('id', user.id)
       .maybeSingle()
       .then(({ data, error }) => {
         if (cancelled) return
         if (error) {
-          console.error('Loading the profile failed:', error)
+          console.error('Loading the student failed:', error)
           setStatus('error')
           return
         }
-        setProfile(data)
+        setStudent(data)
         setStatus('ready')
       })
 
@@ -84,8 +83,8 @@ export default function Platform() {
     }
   }, [user])
 
-  const students = profile?.students ?? []
-  const firstName = profile?.guardian_name?.trim().split(/\s+/)[0]
+  const enrollments = student?.enrollments ?? []
+  const firstName = student?.name?.trim().split(/\s+/)[0]
 
   return (
     <div className="scs-page">
@@ -95,11 +94,11 @@ export default function Platform() {
 
       <div className="scs-content">
         <PageHero
-          kicker="منصة ولي الأمر"
+          kicker="منصة الطالب"
           kickerIcon={LayoutDashboard}
           title={firstName ? `أهلًا ${firstName}` : 'أهلًا بيك'}
           accent="في منصتك"
-          lead="من هنا بتتابع بيانات الطالب والكورسات المسجّل فيها. أي تعديل أو إضافة كورس كلّمنا وهنظبطها."
+          lead="من هنا بتتابع كورساتك ومستواك ومواعيدك. أي تعديل في بياناتك أو إضافة كورس كلّمنا وهنظبطها."
         >
           <button type="button" className="scs-btn-secondary mt-8 px-6" onClick={signOut}>
             تسجيل الخروج
@@ -120,58 +119,23 @@ export default function Platform() {
             </p>
           )}
 
-          {status === 'ready' && !profile && (
+          {status === 'ready' && !student && (
             <p className="scs-form-error max-w-lg mx-auto" role="alert">
               <AlertCircle size={15} />
               <span>
-                الحساب ده لسه ماتربطش ببيانات ولي أمر. <Link to="/contact">كلّمنا</Link> وهنظبطه.
+                الحساب ده لسه ماتربطش ببيانات طالب. <Link to="/contact">كلّمنا</Link> وهنظبطه.
               </span>
             </p>
           )}
 
-          {status === 'ready' && profile && (
+          {status === 'ready' && student && (
             <div className="grid lg:grid-cols-5 gap-6 items-start">
-              {/* Account details */}
-              <div className="lg:col-span-2 flex flex-col gap-4 scs-reveal is-visible">
-                <div className="scs-card scs-card-static p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="scs-icon-wrap scs-tint-blue">
-                      <User size={20} />
-                    </span>
-                    <h2 className="scs-card-title text-base">ولي الأمر</h2>
-                  </div>
-                  <ul className="scs-list">
-                    <InfoRow icon={User} label="الاسم" value={profile.guardian_name} />
-                    <InfoRow icon={Phone} label="الموبايل" value={profile.guardian_phone} ltr />
-                    <InfoRow icon={Mail} label="الإيميل" value={profile.email ?? user.email} ltr />
-                  </ul>
-                </div>
-
-                {students.map((s) => (
-                  <div key={s.id} className="scs-card scs-card-static p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="scs-icon-wrap scs-tint-green">
-                        <GraduationCap size={20} />
-                      </span>
-                      <h2 className="scs-card-title text-base">الطالب</h2>
-                    </div>
-                    <ul className="scs-list">
-                      <InfoRow icon={User} label="الاسم" value={s.name} />
-                      <InfoRow icon={Phone} label="الموبايل" value={s.phone} ltr />
-                    </ul>
-                  </div>
-                ))}
-              </div>
-
-              {/* Enrollments */}
-              <div
-                className="lg:col-span-3 scs-card scs-card-static p-7 md:p-9 scs-reveal is-visible"
-                data-delay="1"
-              >
+              {/* Enrollments — the main thing a student comes here for */}
+              <div className="lg:col-span-3 scs-card scs-card-static p-7 md:p-9 scs-reveal is-visible">
                 <span className="scs-kicker block mb-3">// الكورسات</span>
-                <h2 className="scs-h2 text-xl md:text-2xl mb-6">الكورسات المسجّل فيها</h2>
+                <h2 className="scs-h2 text-xl md:text-2xl mb-6">كورساتك</h2>
 
-                {students.every((s) => (s.enrollments ?? []).length === 0) ? (
+                {enrollments.length === 0 ? (
                   <div className="flex flex-col items-center text-center py-8">
                     <div className="scs-icon-wrap scs-tint-gold mb-5">
                       <BookOpen size={22} />
@@ -188,31 +152,57 @@ export default function Platform() {
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4">
-                    {students.flatMap((s) =>
-                      (s.enrollments ?? []).map((en) => {
-                        const st = statusLabels[en.status] ?? statusLabels.active
-                        return (
-                          <div key={en.id} className="scs-enrollment">
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <h3 className="scs-card-title text-base">{en.course}</h3>
-                                {students.length > 1 && (
-                                  <span className="scs-enrollment-student">{s.name}</span>
-                                )}
-                              </div>
-                              <span className={`scs-badge-pill ${st.tone}`}>{st.text}</span>
-                            </div>
-                            <ul className="scs-list mt-3">
-                              <InfoRow icon={GraduationCap} label="المستوى" value={en.level} />
-                              <InfoRow icon={BookOpen} label="المواعيد" value={en.schedule} />
-                              <InfoRow icon={LayoutDashboard} label="البداية" value={en.starts_on} ltr />
-                            </ul>
+                    {enrollments.map((en) => {
+                      const st = statusLabels[en.status] ?? statusLabels.active
+                      return (
+                        <div key={en.id} className="scs-enrollment">
+                          <div className="flex items-start justify-between gap-3">
+                            <h3 className="scs-card-title text-base">{en.course}</h3>
+                            <span className={`scs-badge-pill ${st.tone}`}>{st.text}</span>
                           </div>
-                        )
-                      }),
-                    )}
+                          <ul className="scs-list mt-3">
+                            <InfoRow icon={GraduationCap} label="المستوى" value={en.level} />
+                            <InfoRow icon={CalendarDays} label="المواعيد" value={en.schedule} />
+                            <InfoRow icon={CalendarDays} label="البداية" value={en.starts_on} ltr />
+                          </ul>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
+              </div>
+
+              {/* Account details */}
+              <div className="lg:col-span-2 flex flex-col gap-4 scs-reveal is-visible" data-delay="1">
+                <div className="scs-card scs-card-static p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="scs-icon-wrap scs-tint-green">
+                      <User size={20} />
+                    </span>
+                    <h2 className="scs-card-title text-base">بياناتك</h2>
+                  </div>
+                  <ul className="scs-list">
+                    <InfoRow icon={User} label="الاسم" value={student.name} />
+                    <InfoRow icon={Phone} label="الموبايل" value={student.phone} ltr />
+                    <InfoRow icon={Mail} label="الإيميل" value={student.email ?? user.email} ltr />
+                  </ul>
+                </div>
+
+                <div className="scs-card scs-card-static p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="scs-icon-wrap scs-tint-blue">
+                      <Users size={20} />
+                    </span>
+                    <h2 className="scs-card-title text-base">ولي الأمر</h2>
+                  </div>
+                  <ul className="scs-list">
+                    <InfoRow icon={User} label="الاسم" value={student.guardian_name} />
+                    <InfoRow icon={Phone} label="الموبايل" value={student.guardian_phone} ltr />
+                  </ul>
+                  <p className="scs-card-text mt-4 text-xs">
+                    بنتواصل مع ولي الأمر لو فيه تأخير في الكورس أو أي ملاحظات.
+                  </p>
+                </div>
               </div>
             </div>
           )}

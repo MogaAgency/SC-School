@@ -29,7 +29,7 @@ export default function Login() {
 
       <div className="scs-content">
         <PageHero
-          kicker="منصة ولي الأمر"
+          kicker="منصة الطالب"
           kickerIcon={LogIn}
           title="الدخول"
           accent="للمنصة"

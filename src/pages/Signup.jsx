@@ -1,13 +1,16 @@
+import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { UserPlus, Mail, AlertCircle } from 'lucide-react'
 import PageHero from '../components/PageHero'
 import OtpCodeForm from '../components/OtpCodeForm'
 import useAuth from '../hooks/useAuth'
 import useEmailOtp from '../hooks/useEmailOtp'
+import { normalizePhone, isValidPhone } from '../lib/phone'
 
 export default function Signup() {
   const { user } = useAuth()
   const otp = useEmailOtp()
+  const [phoneError, setPhoneError] = useState('')
 
   if (user) return <Navigate to="/platform" replace />
 
@@ -21,19 +24,29 @@ export default function Signup() {
     const email = data.email?.toString().trim() ?? ''
     if (!email) return
 
+    const phone = normalizePhone(data.phone)
+    const guardianPhone = normalizePhone(data.guardian_phone)
+    if (!isValidPhone(phone) || !isValidPhone(guardianPhone)) {
+      setPhoneError('اكتب رقم موبايل صحيح، مثلًا 0100 123 4567 أو +20 100 123 4567.')
+      return
+    }
+    setPhoneError('')
+
     // The metadata lands in auth.users.raw_user_meta_data; the database
-    // trigger in supabase/schema.sql copies it into profiles + students.
+    // trigger in supabase/schema.sql copies it into the students table.
     otp.sendCode(email, {
       shouldCreateUser: true,
       data: {
+        name: data.name?.toString().trim(),
+        phone,
         guardian_name: data.guardian_name?.toString().trim(),
-        guardian_phone: data.guardian_phone?.toString().trim(),
-        student_name: data.student_name?.toString().trim(),
-        student_phone: data.student_phone?.toString().trim(),
+        guardian_phone: guardianPhone,
         consent: Boolean(data.consent),
       },
     })
   }
+
+  const error = phoneError || otp.error
 
   return (
     <div className="scs-page">
@@ -43,11 +56,11 @@ export default function Signup() {
 
       <div className="scs-content">
         <PageHero
-          kicker="منصة ولي الأمر"
+          kicker="منصة الطالب"
           kickerIcon={UserPlus}
           title="حساب"
           accent="جديد"
-          lead="سجّل بياناتك وبيانات الطالب مرة واحدة، وبعدها الدخول بكود على الإيميل من غير باسورد."
+          lead="سجّل بياناتك مرة واحدة، وبعدها الدخول بكود على الإيميل من غير باسورد."
         />
 
         <section className="max-w-2xl mx-auto px-4 pb-20">
@@ -66,61 +79,33 @@ export default function Signup() {
             ) : (
               <form className="grid sm:grid-cols-2 gap-5" onSubmit={handleSubmit}>
                 <div>
-                  <label className="scs-label" htmlFor="guardian_name">
-                    اسم ولي الأمر
+                  <label className="scs-label" htmlFor="name">
+                    اسم الطالب
                   </label>
                   <input
-                    id="guardian_name"
-                    name="guardian_name"
+                    id="name"
+                    name="name"
                     type="text"
                     required
                     autoComplete="name"
                     className="scs-input"
-                    placeholder="الاسم بالكامل"
+                    placeholder="اسمك بالكامل"
                   />
                 </div>
 
                 <div>
-                  <label className="scs-label" htmlFor="guardian_phone">
-                    رقم ولي الأمر
+                  <label className="scs-label" htmlFor="phone">
+                    رقم الطالب
                   </label>
                   <input
-                    id="guardian_phone"
-                    name="guardian_phone"
+                    id="phone"
+                    name="phone"
                     type="tel"
                     required
                     autoComplete="tel"
                     dir="ltr"
                     className="scs-input text-right"
-                    placeholder="+20 1XX XXX XXXX"
-                  />
-                </div>
-
-                <div>
-                  <label className="scs-label" htmlFor="student_name">
-                    اسم الطالب
-                  </label>
-                  <input
-                    id="student_name"
-                    name="student_name"
-                    type="text"
-                    required
-                    className="scs-input"
-                    placeholder="اسم الطالب"
-                  />
-                </div>
-
-                <div>
-                  <label className="scs-label" htmlFor="student_phone">
-                    رقم الطالب <span className="scs-optional">(اختياري)</span>
-                  </label>
-                  <input
-                    id="student_phone"
-                    name="student_phone"
-                    type="tel"
-                    dir="ltr"
-                    className="scs-input text-right"
-                    placeholder="+20 1XX XXX XXXX"
+                    placeholder="01XX XXX XXXX"
                   />
                 </div>
 
@@ -141,13 +126,50 @@ export default function Signup() {
                   <span className="scs-field-hint">// ده الإيميل اللي هيوصله كود الدخول كل مرة</span>
                 </div>
 
+                <div className="sm:col-span-2 scs-form-divider">
+                  <span className="scs-kicker">// بيانات ولي الأمر</span>
+                  <p className="scs-card-text mt-1">
+                    بنتواصل مع ولي الأمر لو فيه تأخير في الكورس أو أي ملاحظات على الطالب.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="scs-label" htmlFor="guardian_name">
+                    اسم ولي الأمر
+                  </label>
+                  <input
+                    id="guardian_name"
+                    name="guardian_name"
+                    type="text"
+                    required
+                    className="scs-input"
+                    placeholder="الاسم بالكامل"
+                  />
+                </div>
+
+                <div>
+                  <label className="scs-label" htmlFor="guardian_phone">
+                    رقم ولي الأمر
+                  </label>
+                  <input
+                    id="guardian_phone"
+                    name="guardian_phone"
+                    type="tel"
+                    required
+                    dir="ltr"
+                    className="scs-input text-right"
+                    placeholder="01XX XXX XXXX"
+                  />
+                </div>
+
                 <div className="sm:col-span-2">
                   <label className="scs-consent" htmlFor="consent">
                     <input id="consent" name="consent" type="checkbox" required />
                     <span>
                       أوافق على إن SC School تحتفظ بالبيانات دي عشان حساب المنصة ومتابعة الكورسات،
-                      وقريت <Link to="/privacy">سياسة الخصوصية</Link>. الحساب ده لولي الأمر، وبيانات
-                      الطالب بتتسجّل بموافقته.
+                      وتتواصل مع ولي الأمر عند الحاجة، وقريت{' '}
+                      <Link to="/privacy">سياسة الخصوصية</Link>. لو سنك أقل من ١٨ سنة، التسجيل
+                      بيكون بموافقة ولي الأمر.
                     </span>
                   </label>
                 </div>
@@ -173,10 +195,10 @@ export default function Signup() {
                     <Mail size={16} />
                   </button>
 
-                  {otp.error && (
+                  {error && (
                     <p className="scs-form-error" role="alert">
                       <AlertCircle size={15} />
-                      <span>{otp.error}</span>
+                      <span>{error}</span>
                     </p>
                   )}
                 </div>

@@ -1,18 +1,30 @@
--- SC School platform schema.
+-- SC School student platform schema.
 --
 -- Run this once in the Supabase dashboard: SQL Editor → New query → paste →
 -- Run. It is safe to re-run; every statement is idempotent.
 --
--- Model: one auth user = one guardian (ولي الأمر). A guardian has a profile,
--- one or more students, and each student has zero or more enrollments.
--- Families can only read their own rows (Row Level Security below). Students
--- and enrollments are added by the school from the dashboard, never from the
--- website, so there are no insert policies for the browser.
+-- Model: one auth user = one student. The student's row also carries the
+-- guardian's (ولي الأمر) name and phone, which the school uses to reach the
+-- family about delays or behaviour — the guardian is a contact, not an
+-- account. Each student has zero or more enrollments.
+--
+-- Students can only read (and lightly edit) their own row. Enrollments are
+-- added by the school from the dashboard, never from the website, so the
+-- browser gets no insert rights anywhere.
+
+-- ------------------------------------------------- earlier draft cleanup
+-- The first draft of this schema modelled a guardian "profiles" table with
+-- students underneath. Nothing was live on it, so drop it if it exists.
+drop table if exists public.enrollments cascade;
+drop table if exists public.students    cascade;
+drop table if exists public.profiles    cascade;
 
 -- ---------------------------------------------------------------- tables
 
-create table if not exists public.profiles (
+create table public.students (
   id             uuid primary key references auth.users (id) on delete cascade,
+  name           text not null default '',
+  phone          text not null default '',
   email          text,
   guardian_name  text not null default '',
   guardian_phone text not null default '',
@@ -20,15 +32,11 @@ create table if not exists public.profiles (
   created_at     timestamptz not null default now()
 );
 
-create table if not exists public.students (
-  id         uuid primary key default gen_random_uuid(),
-  profile_id uuid not null references public.profiles (id) on delete cascade,
-  name       text not null,
-  phone      text not null default '',
-  created_at timestamptz not null default now()
-);
+-- One account per student phone. Phones are normalised to +20... in the
+-- browser before they get here (src/lib/phone.js).
+create unique index students_phone_key on public.students (phone) where phone <> '';
 
-create table if not exists public.enrollments (
+create table public.enrollments (
   id         uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.students (id) on delete cascade,
   course     text not null,
@@ -40,58 +48,42 @@ create table if not exists public.enrollments (
   created_at timestamptz not null default now()
 );
 
-create index if not exists students_profile_id_idx   on public.students (profile_id);
-create index if not exists enrollments_student_id_idx on public.enrollments (student_id);
+create index enrollments_student_id_idx on public.enrollments (student_id);
 
 -- ------------------------------------------------- row level security
 
-alter table public.profiles    enable row level security;
 alter table public.students    enable row level security;
 alter table public.enrollments enable row level security;
 
-drop policy if exists "guardian reads own profile"   on public.profiles;
-drop policy if exists "guardian updates own profile" on public.profiles;
-create policy "guardian reads own profile"
-  on public.profiles for select
+create policy "student reads own row"
+  on public.students for select
   to authenticated
   using ((select auth.uid()) = id);
-create policy "guardian updates own profile"
-  on public.profiles for update
+
+create policy "student updates own row"
+  on public.students for update
   to authenticated
   using ((select auth.uid()) = id)
   with check ((select auth.uid()) = id);
 
-drop policy if exists "guardian reads own students" on public.students;
-create policy "guardian reads own students"
-  on public.students for select
-  to authenticated
-  using ((select auth.uid()) = profile_id);
-
-drop policy if exists "guardian reads own enrollments" on public.enrollments;
-create policy "guardian reads own enrollments"
+create policy "student reads own enrollments"
   on public.enrollments for select
   to authenticated
-  using (
-    exists (
-      select 1 from public.students s
-      where s.id = enrollments.student_id
-        and s.profile_id = (select auth.uid())
-    )
-  );
+  using ((select auth.uid()) = student_id);
 
 -- The project was created with "Automatically expose new tables" off, so the
 -- API roles need explicit grants. RLS above still decides which rows they see.
 grant usage on schema public to authenticated;
-grant select on public.profiles to authenticated;
-grant update (guardian_name, guardian_phone) on public.profiles to authenticated;
-grant select on public.students    to authenticated;
+grant select on public.students to authenticated;
+grant update (name, phone, guardian_name, guardian_phone) on public.students to authenticated;
 grant select on public.enrollments to authenticated;
 
 -- ----------------------------------------------------- signup trigger
 
--- Copies the signup form (sent as user metadata from Signup.jsx) into
--- profiles + students the moment Supabase creates the auth user, so the
--- browser never needs insert rights on either table.
+-- Copies the signup form (sent as user metadata from Signup.jsx) into the
+-- students table the moment Supabase creates the auth user. If the phone is
+-- already taken the unique index makes this fail, which aborts the signup
+-- and surfaces as "Database error saving new user" in the browser.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -99,23 +91,19 @@ security definer
 set search_path = ''
 as $$
 declare
-  meta         jsonb := coalesce(new.raw_user_meta_data, '{}'::jsonb);
-  student_name text  := nullif(trim(coalesce(meta ->> 'student_name', '')), '');
+  meta jsonb := coalesce(new.raw_user_meta_data, '{}'::jsonb);
 begin
-  insert into public.profiles (id, email, guardian_name, guardian_phone, consented_at)
+  insert into public.students (id, email, name, phone, guardian_name, guardian_phone, consented_at)
   values (
     new.id,
     new.email,
+    coalesce(meta ->> 'name', ''),
+    coalesce(meta ->> 'phone', ''),
     coalesce(meta ->> 'guardian_name', ''),
     coalesce(meta ->> 'guardian_phone', ''),
     case when (meta ->> 'consent') = 'true' then now() end
   )
   on conflict (id) do nothing;
-
-  if student_name is not null then
-    insert into public.students (profile_id, name, phone)
-    values (new.id, student_name, coalesce(meta ->> 'student_phone', ''));
-  end if;
 
   return new;
 end;
