@@ -33,8 +33,9 @@ npm run dev
 ## منصة الطالب (Supabase)
 
 صفحات `/login` و`/signup` و`/platform` بتشتغل على [Supabase](https://supabase.com):
-تسجيل بكود على الإيميل من غير باسورد، وقاعدة بيانات فيها الطالب وكورساته. الحساب بتاع
-الطالب؛ اسم ورقم ولي الأمر بيتسجّلوا معاه عشان المدرسة تتواصل معاه لو فيه تأخير أو ملاحظات.
+تسجيل بالإيميل والباسورد، وقاعدة بيانات فيها الطالب وكورساته. الحساب بتاع الطالب؛ اسم ورقم
+ولي الأمر بيتسجّلوا معاه عشان المدرسة تتواصل معاه لو فيه تأخير أو ملاحظات. فيه كمان
+`/forgot-password` و`/reset-password` لاسترجاع الباسورد بلينك على الإيميل.
 
 ### الإعداد لأول مرة
 
@@ -52,16 +53,19 @@ npm run dev
    ده بيعمل الجداول (`students`, `enrollments`)، وسياسات الـ RLS اللي بتخلي كل طالب يشوف
    بياناته بس، والـ trigger اللي بينقل بيانات فورم التسجيل لجدول الطلاب.
 
-3. **Authentication → Email Templates**: في قالب *Magic Link* وقالب *Confirm signup* استبدل
-   `{{ .ConfirmationURL }}` بـ `{{ .Token }}` عشان الإيميل يوصل فيه كود من ٦ أرقام بدل لينك.
-   مثال:
+3. **Authentication → Sign In / Providers → Email**: خليه مفعّل، واقفل **Confirm email** مؤقتًا.
+   من غير كده Supabase بيبعت لينك تأكيد قبل أول دخول، والإيميلات الافتراضية محدودة جدًا
+   (شوف تحت). رجّعه بعد ما تظبط SMTP.
+
+4. **Authentication → URL Configuration**: حط Site URL على `https://sc-school.com` وضيف في
+   Redirect URLs:
 
    ```
-   كود الدخول لمنصة Smart Core School هو: {{ .Token }}
+   http://localhost:5173/**
+   https://sc-school.com/**
    ```
 
-4. **Authentication → Providers → Email**: خليه مفعّل. مش محتاج Redirect URLs لأن الدخول
-   بالكود مابيعملش redirect.
+   لينك استرجاع الباسورد بيرجّع الطالب على `/reset-password`، ولازم الدومين يكون في القايمة دي.
 
 ### إضافة كورس لطالب
 
@@ -71,8 +75,10 @@ enrollments**: اختار `student_id` (نفس id الطالب في جدول `st
 
 ### قبل ما فيه عيلات حقيقية تستخدمها
 
-الإيميلات بتطلع من SMTP بتاع Supabase الافتراضي، وده محدود بكام إيميل في الساعة وللتجربة بس.
-وصّل SMTP خاص (Resend أو Brevo مثلًا) من **Project Settings → Authentication → SMTP Settings**.
+الإيميلات (تأكيد الحساب واسترجاع الباسورد) بتطلع من SMTP بتاع Supabase الافتراضي، وده محدود
+بكام إيميل في الساعة وللتجربة بس، وقوالب الإيميل مقفولة للتعديل على المشاريع المجانية الجديدة
+لحد ما تظبط SMTP خاص. وصّل SMTP خاص (Brevo أو Resend مثلًا) من **Project Settings →
+Authentication → SMTP Settings**، وبعدها تقدر تعرّب القوالب وترجّع **Confirm email**.
 
 عند النشر على Vercel ضيف `VITE_SUPABASE_URL` و`VITE_SUPABASE_PUBLISHABLE_KEY` في Environment
 Variables بتاعة المشروع.
