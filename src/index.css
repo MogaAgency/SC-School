@@ -80,6 +80,9 @@ section[id] {
   position: absolute;
   inset: 0;
   height: 1500px;
+  /* never taller than the page itself: on short pages (/login, /privacy…) the
+     overhang added scrollable blank space below the footer */
+  max-height: 100%;
   z-index: 0;
   pointer-events: none;
   background-image:
