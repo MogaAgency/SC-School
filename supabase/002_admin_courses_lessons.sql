@@ -67,6 +67,43 @@ create table if not exists public.courses (
   created_at   timestamptz not null default now()
 );
 
+-- -------------------------------------------------------- enrollments
+-- Rebuilt: `course text` becomes a real reference to courses. This has to
+-- happen before any policy below mentions enrollments.course_id, because
+-- Postgres validates policy expressions against the table as it exists.
+
+drop table if exists public.enrollments cascade;
+
+create table public.enrollments (
+  id         uuid primary key default gen_random_uuid(),
+  student_id uuid not null references public.students (id) on delete cascade,
+  course_id  uuid not null references public.courses (id) on delete cascade,
+  schedule   text,
+  status     text not null default 'active'
+             check (status in ('active', 'completed', 'paused')),
+  starts_on  date,
+  created_at timestamptz not null default now(),
+  unique (student_id, course_id)
+);
+
+create index enrollments_student_id_idx on public.enrollments (student_id);
+create index enrollments_course_id_idx  on public.enrollments (course_id);
+
+alter table public.enrollments enable row level security;
+
+create policy "student reads own enrollments"
+  on public.enrollments for select to authenticated
+  using ((select auth.uid()) = student_id);
+
+create policy "admins manage enrollments"
+  on public.enrollments for all to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+grant select, insert, update, delete on public.enrollments to authenticated;
+
+-- ------------------------------------------------------ course policies
+
 alter table public.courses enable row level security;
 
 drop policy if exists "admins manage courses"                on public.courses;
@@ -172,39 +209,6 @@ create policy "students read files of enrolled lessons"
   );
 
 grant select, insert, update, delete on public.lesson_files to authenticated;
-
--- -------------------------------------------------------- enrollments
--- Rebuilt: `course text` becomes a real reference to courses.
-
-drop table if exists public.enrollments cascade;
-
-create table public.enrollments (
-  id         uuid primary key default gen_random_uuid(),
-  student_id uuid not null references public.students (id) on delete cascade,
-  course_id  uuid not null references public.courses (id) on delete cascade,
-  schedule   text,
-  status     text not null default 'active'
-             check (status in ('active', 'completed', 'paused')),
-  starts_on  date,
-  created_at timestamptz not null default now(),
-  unique (student_id, course_id)
-);
-
-create index enrollments_student_id_idx on public.enrollments (student_id);
-create index enrollments_course_id_idx  on public.enrollments (course_id);
-
-alter table public.enrollments enable row level security;
-
-create policy "student reads own enrollments"
-  on public.enrollments for select to authenticated
-  using ((select auth.uid()) = student_id);
-
-create policy "admins manage enrollments"
-  on public.enrollments for all to authenticated
-  using (public.is_admin())
-  with check (public.is_admin());
-
-grant select, insert, update, delete on public.enrollments to authenticated;
 
 -- ----------------------------------------------- students, seen by admins
 
