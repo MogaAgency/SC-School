@@ -8,7 +8,6 @@ import {
   Mail,
   BookOpen,
   GraduationCap,
-  CalendarDays,
   LogOut,
   AlertCircle,
   ArrowLeft,
@@ -32,9 +31,7 @@ const STUDENT_QUERY = `
   guardian_phone,
   enrollments (
     id,
-    schedule,
     status,
-    starts_on,
     courses ( id, title, level )
   )
 `
@@ -163,8 +160,6 @@ export default function Platform() {
                           </div>
                           <ul className="scs-list mt-3">
                             <InfoRow icon={GraduationCap} label="المستوى" value={en.courses?.level} />
-                            <InfoRow icon={CalendarDays} label="المواعيد" value={en.schedule} />
-                            <InfoRow icon={CalendarDays} label="البداية" value={en.starts_on} ltr />
                           </ul>
                         </div>
                       )

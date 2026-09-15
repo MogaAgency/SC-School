@@ -37,10 +37,8 @@ create table public.enrollments (
   student_id uuid not null references public.students (id) on delete cascade,
   course     text not null,
   level      text,
-  schedule   text,
   status     text not null default 'active'
              check (status in ('active', 'completed', 'paused')),
-  starts_on  date,
   created_at timestamptz not null default now()
 );
 

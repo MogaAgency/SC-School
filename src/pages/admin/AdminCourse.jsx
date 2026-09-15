@@ -134,7 +134,7 @@ export default function AdminCourse() {
     const [enr, stu] = await Promise.all([
       supabase
         .from('enrollments')
-        .select('id, status, schedule, starts_on, students(id, name, phone)')
+        .select('id, status, students(id, name, phone)')
         .eq('course_id', id)
         .order('created_at'),
       supabase.from('students').select('id, name, phone').order('name'),
@@ -283,7 +283,6 @@ export default function AdminCourse() {
     const { error: err } = await supabase.from('enrollments').insert({
       course_id: id,
       student_id: data.student_id,
-      schedule: data.schedule?.toString().trim() || null,
     })
     setBusy(false)
     if (err) setError(fail('Enrolling student', err))
@@ -360,8 +359,8 @@ export default function AdminCourse() {
               {enrollments && <span className="scs-admin-meta">{enrollments.length} طالب</span>}
             </div>
 
-            <form className="flex flex-col gap-3 mb-5" onSubmit={enroll}>
-              <select name="student_id" className="scs-select" required defaultValue="">
+            <form className="flex gap-3 mb-5" onSubmit={enroll}>
+              <select name="student_id" className="scs-select min-w-0 flex-1" required defaultValue="">
                 <option value="" disabled>
                   اختار طالب…
                 </option>
@@ -371,12 +370,9 @@ export default function AdminCourse() {
                   </option>
                 ))}
               </select>
-              <div className="flex gap-3">
-                <input name="schedule" type="text" className="scs-input flex-1" placeholder="المواعيد (اختياري)، مثلًا: السبت ٥م" />
-                <button type="submit" className="scs-btn-primary px-4" disabled={busy || available.length === 0} aria-label="تسجيل">
-                  <UserPlus size={16} />
-                </button>
-              </div>
+              <button type="submit" className="scs-btn-primary px-4 shrink-0" disabled={busy || available.length === 0} aria-label="تسجيل">
+                <UserPlus size={16} />
+              </button>
             </form>
 
             {!enrollments ? (

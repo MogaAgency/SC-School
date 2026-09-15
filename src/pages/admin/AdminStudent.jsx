@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { fail } from '../../lib/report'
 import { ErrorBox, Loading, Empty, StatusSelect } from '../../components/admin/ui'
 
-const SELECT = '*, enrollments(id, status, schedule, starts_on, courses(id, title, level))'
+const SELECT = '*, enrollments(id, status, courses(id, title, level))'
 
 function Row({ icon: Icon, label, value, ltr }) {
   if (!value) return null
@@ -56,7 +56,6 @@ export default function AdminStudent() {
     const { error: err } = await supabase.from('enrollments').insert({
       student_id: id,
       course_id: data.course_id,
-      schedule: data.schedule?.toString().trim() || null,
     })
     setBusy(false)
     if (err) setError(fail('Enrolling student', err))
@@ -132,8 +131,8 @@ export default function AdminStudent() {
         <div className="lg:col-span-3 scs-card scs-card-static p-6 md:p-7">
           <span className="scs-kicker block mb-4">// الكورسات المسجّل فيها</span>
 
-          <form className="flex flex-col sm:flex-row gap-3 mb-5" onSubmit={enroll}>
-            <select name="course_id" className="scs-select flex-1" required defaultValue="">
+          <form className="flex gap-3 mb-5" onSubmit={enroll}>
+            <select name="course_id" className="scs-select min-w-0 flex-1" required defaultValue="">
               <option value="" disabled>
                 اختار كورس…
               </option>
@@ -144,8 +143,7 @@ export default function AdminStudent() {
                 </option>
               ))}
             </select>
-            <input name="schedule" type="text" className="scs-input sm:w-52" placeholder="المواعيد (اختياري)" />
-            <button type="submit" className="scs-btn-primary px-4" disabled={busy || available.length === 0} aria-label="تسجيل">
+            <button type="submit" className="scs-btn-primary px-4 shrink-0" disabled={busy || available.length === 0} aria-label="تسجيل">
               <UserPlus size={16} />
             </button>
           </form>
@@ -160,10 +158,7 @@ export default function AdminStudent() {
                     <Link to={`/admin/courses/${en.courses?.id}`} className="scs-admin-title">
                       {en.courses?.title ?? '—'}
                     </Link>
-                    <div className="scs-admin-meta">
-                      {en.courses?.level || 'بدون مستوى'}
-                      {en.schedule ? ` · ${en.schedule}` : ''}
-                    </div>
+                    <div className="scs-admin-meta">{en.courses?.level || 'بدون مستوى'}</div>
                   </div>
                   <div className="scs-admin-actions items-center gap-2">
                     <StatusSelect value={en.status} onChange={(v) => setStatus(en, v)} />

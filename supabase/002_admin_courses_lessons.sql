@@ -78,10 +78,8 @@ create table public.enrollments (
   id         uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.students (id) on delete cascade,
   course_id  uuid not null references public.courses (id) on delete cascade,
-  schedule   text,
   status     text not null default 'active'
              check (status in ('active', 'completed', 'paused')),
-  starts_on  date,
   created_at timestamptz not null default now(),
   unique (student_id, course_id)
 );
