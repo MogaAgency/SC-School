@@ -15,10 +15,13 @@ import {
   Upload,
   UserPlus,
   UserMinus,
+  ClipboardCheck,
+  BarChart3,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { fail } from '../../lib/report'
 import { youtubeId, youtubeThumb } from '../../lib/youtube'
+import { one } from '../../lib/quiz'
 import { Pill, ErrorBox, Loading, Empty, Field, StatusSelect } from '../../components/admin/ui'
 
 const BUCKET = 'lesson-files'
@@ -122,7 +125,7 @@ export default function AdminCourse() {
   const loadLessons = useCallback(async () => {
     const { data, error: err } = await supabase
       .from('lessons')
-      .select('*, lesson_files(id, name, path, size)')
+      .select('*, lesson_files(id, name, path, size), quizzes(id, is_published, quiz_questions(count))')
       .eq('course_id', id)
       .order('position')
       .order('created_at')
@@ -318,10 +321,16 @@ export default function AdminCourse() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link to="/admin" className="scs-text-link inline-flex items-center gap-1 self-start">
-        <ArrowRight size={14} />
-        كل الكورسات
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link to="/admin" className="scs-text-link inline-flex items-center gap-1">
+          <ArrowRight size={14} />
+          كل الكورسات
+        </Link>
+        <Link to={`/admin/courses/${id}/scores`} className="scs-btn-secondary px-4 py-2 text-sm">
+          <BarChart3 size={15} />
+          نتائج الاختبارات
+        </Link>
+      </div>
 
       <ErrorBox>{error}</ErrorBox>
 
@@ -480,10 +489,19 @@ export default function AdminCourse() {
                       <div className="scs-admin-title">{l.title}</div>
                       <div className="scs-admin-meta">
                         {youtubeId(l.youtube_url) ? 'فيديو' : 'بدون فيديو'} · {(l.lesson_files ?? []).length} ملف
+                        {(() => {
+                          const q = one(l.quizzes)
+                          if (!q) return ' · بدون اختبار'
+                          const n = q.quiz_questions?.[0]?.count ?? 0
+                          return ` · اختبار ${n} سؤال${q.is_published ? '' : ' (مخفي)'}`
+                        })()}
                       </div>
                     </div>
                     <Pill on={l.is_published} />
                     <div className="scs-admin-actions">
+                      <Link to={`/admin/courses/${id}/lessons/${l.id}/quiz`} className="scs-icon-btn" aria-label="الاختبار" title="الاختبار">
+                        <ClipboardCheck size={16} />
+                      </Link>
                       <button type="button" className="scs-icon-btn" onClick={() => moveLesson(i, -1)} disabled={i === 0} aria-label="لفوق">
                         <ArrowUp size={16} />
                       </button>

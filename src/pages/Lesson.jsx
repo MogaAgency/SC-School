@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Paperclip, Download, AlertCircle, ArrowRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { youtubeEmbedUrl } from '../lib/youtube'
+import { summarizeAttempts } from '../lib/quiz'
+import QuizPlayer from '../components/QuizPlayer'
 
 const BUCKET = 'lesson-files'
 
@@ -43,6 +45,8 @@ export default function Lesson() {
   const { id: courseId, lessonId } = useParams()
   const [lesson, setLesson] = useState(undefined)
   const [siblings, setSiblings] = useState([])
+  const [quiz, setQuiz] = useState(null)
+  const [best, setBest] = useState(null)
   const [error, setError] = useState('')
   const [downloading, setDownloading] = useState('')
 
@@ -58,21 +62,64 @@ export default function Lesson() {
         .eq('course_id', courseId)
         .maybeSingle(),
       supabase.from('lessons').select('id, title, position').eq('course_id', courseId).order('position'),
-    ]).then(([one, all]) => {
+      // The quiz arrives without correct answers; RLS hides it until published.
+      supabase
+        .from('quizzes')
+        .select('id, title, quiz_questions(id, prompt, options, position, created_at)')
+        .eq('lesson_id', lessonId)
+        .order('position', { referencedTable: 'quiz_questions' })
+        .order('created_at', { referencedTable: 'quiz_questions' })
+        .maybeSingle(),
+    ]).then(([one, all, qz]) => {
       if (cancelled) return
-      if (one.error || all.error) {
-        console.error('Loading lesson failed:', one.error ?? all.error)
+      if (one.error || all.error || qz.error) {
+        console.error('Loading lesson failed:', one.error ?? all.error ?? qz.error)
         setError('معرفناش نحمّل الدرس دلوقتي. حدّث الصفحة وجرّب تاني.')
         return
       }
       setLesson(one.data)
       setSiblings(all.data ?? [])
+      setQuiz(qz.data)
     })
 
     return () => {
       cancelled = true
     }
   }, [courseId, lessonId])
+
+  // Own attempts (RLS limits the rows to the signed-in student).
+  const quizId = quiz?.id ?? null
+  useEffect(() => {
+    if (!supabase || !quizId) {
+      setBest(null)
+      return
+    }
+    let cancelled = false
+    supabase
+      .from('quiz_attempts')
+      .select('quiz_id, score, total, created_at')
+      .eq('quiz_id', quizId)
+      .then(({ data, error: err }) => {
+        if (cancelled) return
+        if (err) console.error('Loading attempts failed:', err)
+        setBest(summarizeAttempts(data ?? [])[quizId] ?? null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [quizId])
+
+  const onSubmitted = (row) => {
+    setBest((prev) => {
+      if (!prev) return { best: row.score, total: row.total, attempts: 1, last: new Date().toISOString() }
+      return {
+        ...prev,
+        attempts: prev.attempts + 1,
+        best: Math.max(prev.best, row.score),
+        total: row.total,
+      }
+    })
+  }
 
   const index = siblings.findIndex((l) => l.id === lessonId)
   const prev = index > 0 ? siblings[index - 1] : null
@@ -194,7 +241,9 @@ export default function Lesson() {
               </p>
             )}
 
-            {!embed && !lesson.content?.trim() && files.length === 0 && (
+            {quiz && <QuizPlayer key={quiz.id} quiz={quiz} best={best} onSubmitted={onSubmitted} />}
+
+            {!embed && !lesson.content?.trim() && files.length === 0 && !quiz && (
               <p className="scs-card-text text-center py-6">محتوى الدرس لسه بيتجهّز.</p>
             )}
 

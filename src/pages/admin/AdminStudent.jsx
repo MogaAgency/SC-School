@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowRight, User, Users, Phone, Mail, CalendarDays, UserPlus, UserMinus } from 'lucide-react'
+import { ArrowRight, User, Users, Phone, Mail, CalendarDays, UserPlus, UserMinus, ClipboardCheck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { fail } from '../../lib/report'
+import { summarizeAttempts, percent, formatDate } from '../../lib/quiz'
 import { ErrorBox, Loading, Empty, StatusSelect } from '../../components/admin/ui'
 
 const SELECT = '*, enrollments(id, status, courses(id, title, level))'
@@ -24,18 +25,25 @@ export default function AdminStudent() {
   const { id } = useParams()
   const [student, setStudent] = useState(undefined)
   const [courses, setCourses] = useState([])
+  const [attempts, setAttempts] = useState([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
-    const [stu, crs] = await Promise.all([
+    const [stu, crs, att] = await Promise.all([
       supabase.from('students').select(SELECT).eq('id', id).maybeSingle(),
       supabase.from('courses').select('id, title, level').order('position'),
+      supabase
+        .from('quiz_attempts')
+        .select('quiz_id, score, total, created_at, quizzes(id, title, lessons(id, title, course_id, courses(id, title)))')
+        .eq('student_id', id),
     ])
     if (stu.error) setError(fail('Loading student', stu.error))
     else setStudent(stu.data)
     if (crs.error) setError(fail('Loading courses', crs.error))
     else setCourses(crs.data)
+    if (att.error) setError(fail('Loading attempts', att.error))
+    else setAttempts(att.data ?? [])
   }, [id])
 
   useEffect(() => {
@@ -89,6 +97,20 @@ export default function AdminStudent() {
 
   const joined = student.created_at ? new Date(student.created_at).toLocaleDateString('ar-EG') : ''
 
+  // One line per quiz: best score, attempts, last try, with lesson + course.
+  const summary = summarizeAttempts(attempts)
+  const scoreRows = Object.entries(summary).map(([quizId, r]) => {
+    const meta = attempts.find((a) => a.quiz_id === quizId)?.quizzes
+    return {
+      quizId,
+      ...r,
+      quizTitle: meta?.title ?? 'اختبار',
+      lessonTitle: meta?.lessons?.title ?? '',
+      courseId: meta?.lessons?.course_id ?? meta?.lessons?.courses?.id,
+      courseTitle: meta?.lessons?.courses?.title ?? '',
+    }
+  })
+
   return (
     <div className="flex flex-col gap-6">
       <Link to="/admin/students" className="scs-text-link inline-flex items-center gap-1 self-start">
@@ -128,7 +150,8 @@ export default function AdminStudent() {
           </div>
         </div>
 
-        <div className="lg:col-span-3 scs-card scs-card-static p-6 md:p-7">
+        <div className="lg:col-span-3 flex flex-col gap-6">
+        <div className="scs-card scs-card-static p-6 md:p-7">
           <span className="scs-kicker block mb-4">// الكورسات المسجّل فيها</span>
 
           <form className="flex gap-3 mb-5" onSubmit={enroll}>
@@ -170,6 +193,55 @@ export default function AdminStudent() {
               ))}
             </div>
           )}
+        </div>
+
+        <div className="scs-card scs-card-static p-6 md:p-7">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="scs-icon-wrap scs-tint-gold">
+              <ClipboardCheck size={20} />
+            </span>
+            <div>
+              <span className="scs-kicker block">// نتائج الاختبارات</span>
+              <span className="scs-admin-meta">{scoreRows.length} اختبار</span>
+            </div>
+          </div>
+
+          {scoreRows.length === 0 ? (
+            <Empty>الطالب ماحلّش أي اختبار لسه.</Empty>
+          ) : (
+            <div className="flex flex-col gap-2.5">
+              {scoreRows.map((r) => {
+                const p = percent(r.best, r.total)
+                return (
+                  <div key={r.quizId} className="scs-admin-row">
+                    <div className="min-w-0 flex-1">
+                      <div className="scs-admin-title">
+                        {r.lessonTitle || r.quizTitle}
+                      </div>
+                      <div className="scs-admin-meta">
+                        {r.courseId ? (
+                          <Link to={`/admin/courses/${r.courseId}/scores`} className="hover:underline">
+                            {r.courseTitle}
+                          </Link>
+                        ) : (
+                          r.courseTitle
+                        )}
+                        {' · '}
+                        {r.attempts} {r.attempts === 1 ? 'محاولة' : 'محاولات'} · آخرها {formatDate(r.last)}
+                      </div>
+                    </div>
+                    <div className="text-left">
+                      <span className={`scs-score ${p >= 50 ? 'is-pass' : 'is-fail'}`}>
+                        {r.best}/{r.total}
+                      </span>
+                      <span className="scs-admin-meta block">{p}٪</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
         </div>
       </div>
     </div>
