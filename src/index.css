@@ -1248,3 +1248,91 @@ a.scs-admin-title:hover {
   color: var(--scs-text-soft);
   pointer-events: none;
 }
+
+/* ---------- student course / lesson pages ---------- */
+.scs-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--scs-font-body);
+  font-size: 0.82rem;
+  color: var(--scs-text-soft);
+}
+.scs-crumbs a {
+  color: var(--scs-green);
+}
+.scs-crumbs a:hover {
+  text-decoration: underline;
+}
+.scs-crumbs svg {
+  flex-shrink: 0;
+}
+
+.scs-video {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--scs-border);
+  background: #000;
+  box-shadow: 0 24px 50px -28px rgba(0, 0, 0, 0.8);
+}
+.scs-video iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.scs-prose p {
+  font-family: var(--scs-font-body);
+  font-size: 0.98rem;
+  line-height: 1.95;
+  color: var(--scs-text);
+  white-space: pre-line;
+  margin-bottom: 1rem;
+}
+.scs-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.scs-file-row-btn {
+  cursor: pointer;
+  border: 1px solid var(--scs-border);
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+.scs-file-row-btn:hover {
+  border-color: rgba(95, 208, 104, 0.35);
+  background: var(--scs-panel-light);
+}
+.scs-file-row-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.scs-enrollment-link {
+  display: block;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+.scs-enrollment-link:hover {
+  border-color: rgba(95, 208, 104, 0.35);
+  background: var(--scs-panel-light);
+  transform: translateY(-2px);
+}
+.scs-enrollment-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.9rem;
+  font-family: var(--scs-font-display);
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--scs-green);
+}

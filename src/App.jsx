@@ -13,6 +13,8 @@ import Signup from './pages/Signup'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Platform from './pages/Platform'
+import Course from './pages/Course'
+import Lesson from './pages/Lesson'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminCourses from './pages/admin/AdminCourses'
 import AdminCourse from './pages/admin/AdminCourse'
@@ -64,6 +66,8 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route element={<RequireAuth />}>
               <Route path="/platform" element={<Platform />} />
+              <Route path="/platform/courses/:id" element={<Course />} />
+              <Route path="/platform/courses/:id/lessons/:lessonId" element={<Lesson />} />
             </Route>
             <Route element={<RequireAdmin />}>
               <Route path="/admin" element={<AdminLayout />}>

@@ -11,6 +11,7 @@ import {
   LogOut,
   AlertCircle,
   ArrowLeft,
+  ChevronLeft,
 } from 'lucide-react'
 import PageHero from '../components/PageHero'
 import useAuth from '../hooks/useAuth'
@@ -32,7 +33,7 @@ const STUDENT_QUERY = `
   enrollments (
     id,
     status,
-    courses ( id, title, level )
+    courses ( id, title, level, lessons ( count ) )
   )
 `
 
@@ -151,16 +152,35 @@ export default function Platform() {
                     {enrollments.map((en) => {
                       const st = statusLabels[en.status] ?? statusLabels.active
                       // `courses` is null while the school keeps the course unpublished.
-                      const title = en.courses?.title ?? 'كورس قيد التجهيز'
-                      return (
-                        <div key={en.id} className="scs-enrollment">
+                      const course = en.courses
+                      const lessonCount = course?.lessons?.[0]?.count ?? 0
+                      const body = (
+                        <>
                           <div className="flex items-start justify-between gap-3">
-                            <h3 className="scs-card-title text-base">{title}</h3>
+                            <h3 className="scs-card-title text-base">{course?.title ?? 'كورس قيد التجهيز'}</h3>
                             <span className={`scs-badge-pill ${st.tone}`}>{st.text}</span>
                           </div>
                           <ul className="scs-list mt-3">
-                            <InfoRow icon={GraduationCap} label="المستوى" value={en.courses?.level} />
+                            <InfoRow icon={GraduationCap} label="المستوى" value={course?.level} />
+                            {course && (
+                              <InfoRow icon={BookOpen} label="الدروس" value={`${lessonCount} درس`} />
+                            )}
                           </ul>
+                          {course && (
+                            <span className="scs-enrollment-cta">
+                              افتح الكورس
+                              <ChevronLeft size={14} />
+                            </span>
+                          )}
+                        </>
+                      )
+                      return course ? (
+                        <Link key={en.id} to={`/platform/courses/${course.id}`} className="scs-enrollment scs-enrollment-link">
+                          {body}
+                        </Link>
+                      ) : (
+                        <div key={en.id} className="scs-enrollment">
+                          {body}
                         </div>
                       )
                     })}
