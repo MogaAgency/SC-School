@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Menu, X, LogIn, LogOut, LayoutDashboard } from 'lucide-react'
+import { Menu, X, LogIn, LogOut, LayoutDashboard, ShieldCheck } from 'lucide-react'
 import logo from '../assets/logo-light.png'
 import useAuth from '../hooks/useAuth'
 
@@ -12,11 +12,17 @@ const links = [
 ]
 
 /** The account buttons: log in when signed out, my platform + log out when signed in. */
-function AccountActions({ user, signOut, block }) {
+function AccountActions({ user, isAdmin, signOut, block }) {
   const width = block ? 'w-full' : ''
   if (user) {
     return (
       <>
+        {isAdmin && (
+          <Link to="/admin" className={`scs-btn-secondary ${width}`}>
+            <ShieldCheck size={15} />
+            لوحة التحكم
+          </Link>
+        )}
         <Link to="/platform" className={`scs-btn-primary ${width}`}>
           <LayoutDashboard size={15} />
           منصتي
@@ -45,7 +51,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { pathname } = useLocation()
-  const { user, signOut } = useAuth()
+  const { user, isAdmin, signOut } = useAuth()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -80,7 +86,7 @@ export default function Navbar() {
         </ul>
 
         <div className="hidden md:flex items-center gap-3">
-          <AccountActions user={user} signOut={signOut} />
+          <AccountActions user={user} isAdmin={isAdmin} signOut={signOut} />
         </div>
 
         <button
@@ -110,7 +116,7 @@ export default function Navbar() {
             ))}
           </ul>
           <div className="flex flex-col gap-3">
-            <AccountActions user={user} signOut={signOut} block />
+            <AccountActions user={user} isAdmin={isAdmin} signOut={signOut} block />
           </div>
         </div>
       )}

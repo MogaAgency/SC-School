@@ -13,8 +13,14 @@ import Signup from './pages/Signup'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Platform from './pages/Platform'
+import AdminLayout from './pages/admin/AdminLayout'
+import AdminCourses from './pages/admin/AdminCourses'
+import AdminCourse from './pages/admin/AdminCourse'
+import AdminStudents from './pages/admin/AdminStudents'
+import AdminStudent from './pages/admin/AdminStudent'
 import AuthProvider from './components/AuthProvider'
 import RequireAuth from './components/RequireAuth'
+import RequireAdmin from './components/RequireAdmin'
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation()
@@ -58,6 +64,14 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route element={<RequireAuth />}>
               <Route path="/platform" element={<Platform />} />
+            </Route>
+            <Route element={<RequireAdmin />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminCourses />} />
+                <Route path="courses/:id" element={<AdminCourse />} />
+                <Route path="students" element={<AdminStudents />} />
+                <Route path="students/:id" element={<AdminStudent />} />
+              </Route>
             </Route>
           </Route>
         </Routes>

@@ -32,11 +32,10 @@ const STUDENT_QUERY = `
   guardian_phone,
   enrollments (
     id,
-    course,
-    level,
     schedule,
     status,
-    starts_on
+    starts_on,
+    courses ( id, title, level )
   )
 `
 
@@ -154,14 +153,16 @@ export default function Platform() {
                   <div className="flex flex-col gap-4">
                     {enrollments.map((en) => {
                       const st = statusLabels[en.status] ?? statusLabels.active
+                      // `courses` is null while the school keeps the course unpublished.
+                      const title = en.courses?.title ?? 'كورس قيد التجهيز'
                       return (
                         <div key={en.id} className="scs-enrollment">
                           <div className="flex items-start justify-between gap-3">
-                            <h3 className="scs-card-title text-base">{en.course}</h3>
+                            <h3 className="scs-card-title text-base">{title}</h3>
                             <span className={`scs-badge-pill ${st.tone}`}>{st.text}</span>
                           </div>
                           <ul className="scs-list mt-3">
-                            <InfoRow icon={GraduationCap} label="المستوى" value={en.level} />
+                            <InfoRow icon={GraduationCap} label="المستوى" value={en.courses?.level} />
                             <InfoRow icon={CalendarDays} label="المواعيد" value={en.schedule} />
                             <InfoRow icon={CalendarDays} label="البداية" value={en.starts_on} ltr />
                           </ul>

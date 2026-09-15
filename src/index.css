@@ -1135,3 +1135,116 @@ section[id] {
   padding-top: 1.1rem;
   margin-top: 0.25rem;
 }
+
+/* ---------- admin ---------- */
+.scs-badge-pill.is-muted {
+  color: var(--scs-text-soft);
+  background: rgba(147, 170, 194, 0.14);
+}
+.scs-admin-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--scs-border);
+  border-radius: 14px;
+  background: rgba(7, 16, 33, 0.45);
+}
+.scs-admin-row-link {
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+.scs-admin-row-link:hover {
+  border-color: rgba(95, 208, 104, 0.35);
+  background: var(--scs-panel-light);
+}
+.scs-admin-title {
+  display: block;
+  font-family: var(--scs-font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--scs-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+a.scs-admin-title:hover {
+  color: var(--scs-green);
+}
+.scs-admin-meta {
+  font-family: var(--scs-font-mono);
+  font-size: 0.7rem;
+  color: var(--scs-text-soft);
+}
+.scs-admin-index {
+  font-family: var(--scs-font-mono);
+  font-size: 0.75rem;
+  color: var(--scs-text-soft);
+  width: 1.5rem;
+  flex-shrink: 0;
+  text-align: center;
+}
+.scs-admin-actions {
+  display: flex;
+  gap: 0.15rem;
+  margin-inline-start: auto;
+  flex-shrink: 0;
+}
+.scs-icon-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.scs-icon-btn:disabled:hover {
+  background: transparent;
+}
+.scs-icon-btn.is-danger:hover {
+  color: #ff8a80;
+  background: rgba(255, 95, 86, 0.12);
+}
+.scs-select-sm {
+  width: auto;
+  padding: 0.4rem 2.2rem 0.4rem 0.8rem;
+  font-size: 0.78rem;
+  border-radius: 10px;
+  background-position: left 0.6rem center;
+}
+.scs-lesson-form {
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed var(--scs-border);
+  margin-bottom: 1rem;
+}
+.scs-lesson-files {
+  width: 100%;
+}
+.scs-file-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(7, 16, 33, 0.5);
+  font-family: var(--scs-font-body);
+  font-size: 0.82rem;
+  color: var(--scs-text);
+}
+.scs-file-row svg:first-child {
+  color: var(--scs-text-soft);
+  flex-shrink: 0;
+}
+.scs-thumb {
+  width: 96px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--scs-border);
+  flex-shrink: 0;
+}
+.scs-input-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--scs-text-soft);
+  pointer-events: none;
+}
