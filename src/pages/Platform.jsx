@@ -94,7 +94,7 @@ export default function Platform() {
           kickerIcon={LayoutDashboard}
           title={firstName ? `أهلًا ${firstName}` : 'أهلًا بيك'}
           accent="في منصتك"
-          lead="من هنا بتتابع كورساتك ومستواك ومواعيدك. أي تعديل في بياناتك أو إضافة كورس كلّمنا وهنظبطها."
+          lead="من هنا بتتابع كورساتك ودروسك. أي تعديل في بياناتك أو إضافة كورس كلّمنا وهنظبطها."
         >
           <button type="button" className="scs-btn-secondary mt-8 px-6" onClick={signOut}>
             تسجيل الخروج
